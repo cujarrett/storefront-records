@@ -4,6 +4,13 @@ The `records` subgraph of `storefront-homelab`. Owns the `Record` type. One team
 
 How it reaches the graph: [Platform Graph](https://github.com/cujarrett/homelab/blob/main/platform/docs/graph.md). The walkthrough is at [graph.mattjarrett.dev](https://graph.mattjarrett.dev).
 
+## Where it runs
+
+Two files in `homelab-workspaces`, one per lane. CI writes the test digest, and `just promote` moves it to prod by pull request. Each file is a `GraphApi`, which the platform renders into the pod, its mesh policy and the Apollo `Subgraph` that publishes this schema.
+
+- [graph-test/records.yaml](https://github.com/cujarrett/homelab-workspaces/blob/main/graph-test/records.yaml)
+- [graph-prod/records.yaml](https://github.com/cujarrett/homelab-workspaces/blob/main/graph-prod/records.yaml)
+
 ## Run it locally
 
 ```bash
