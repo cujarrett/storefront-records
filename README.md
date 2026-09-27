@@ -6,7 +6,7 @@ How it reaches the graph: [Platform Graph](https://github.com/cujarrett/homelab/
 
 ## Where it runs
 
-Two files in `homelab-workspaces`, one per lane. CI writes the test digest, and `just promote` moves it to prod by pull request. Each file is a `GraphApi`, which the platform renders into the pod, its mesh policy and the Apollo `Subgraph` that publishes this schema.
+Two files in `homelab-workspaces`, one per lane. CI writes the test digest, then opens a pull request moving that digest to prod. Merging it is the promotion. Each file is a `GraphApi`, which the platform renders into the pod, its mesh policy and the Apollo `Subgraph` that publishes this schema.
 
 - [graph-test/records.yaml](https://github.com/cujarrett/homelab-workspaces/blob/main/graph-test/records.yaml)
 - [graph-prod/records.yaml](https://github.com/cujarrett/homelab-workspaces/blob/main/graph-prod/records.yaml)
@@ -28,8 +28,4 @@ just check
 
 ## Promoting to prod
 
-```bash
-just promote
-```
-
-Opens a PR in `homelab-workspaces` moving the digest running in test into `graph-prod`, after confirming the schema still composes against `storefront-homelab@prod`.
+Every merge to main deploys to test and opens, or updates, the `promote-records` pull request in `homelab-workspaces`. It has already passed the schema check against `storefront-homelab@prod`. Review and merge it.

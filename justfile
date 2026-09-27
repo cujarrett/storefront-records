@@ -20,8 +20,3 @@ dev:
 # does this compose against the test variant, and does it break a real operation
 check:
     rover subgraph check storefront-homelab@test --name records --schema schema.graphql
-
-# check against prod, then open the PR moving the test digest into graph-prod
-promote:
-    rover subgraph check storefront-homelab@prod --name records --schema schema.graphql
-    gh workflow run promote.yml

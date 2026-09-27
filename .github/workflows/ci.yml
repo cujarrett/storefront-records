@@ -80,3 +80,36 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git commit -am "records: deploy ${{ needs.build-and-push.outputs.digest }}"
           git push
+
+  # Every deploy to test proposes itself for prod. The human step is merging the PR.
+  # One branch per subgraph, force-pushed, so a newer digest replaces an unmerged one.
+  promote:
+    needs: [build-and-push, deploy]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
+      APOLLO_ELV2_LICENSE: accept
+      GH_TOKEN: ${{ secrets.HOMELAB_WORKSPACES_PAT }}
+      IMAGE: ghcr.io/cujarrett/storefront-records@${{ needs.build-and-push.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: apollographql/rover-actions/install-rover-cli@v1
+      - run: rover subgraph check storefront-homelab@prod --name records --schema schema.graphql
+      - uses: actions/checkout@v7
+        with:
+          repository: cujarrett/homelab-workspaces
+          token: ${{ secrets.HOMELAB_WORKSPACES_PAT }}
+          path: homelab-workspaces
+      - working-directory: homelab-workspaces
+        run: |
+          git checkout -B promote-records
+          sed -i "s|^\(\s*\)image: .*|\1image: $IMAGE|" graph-prod/records.yaml
+          if git diff --quiet; then echo "prod already runs $IMAGE"; exit 0; fi
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git commit -am "records: promote to prod"
+          git push --force origin promote-records
+          gh pr view promote-records >/dev/null 2>&1 || gh pr create --head promote-records \
+            --title "records: promote to prod" \
+            --body "Passed the schema check against storefront-homelab@prod. Moves graph-prod/records.yaml to the digest now running in test."

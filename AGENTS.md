@@ -31,7 +31,7 @@ Before telling the user to commit, always run `/security-review`. Once it confir
 
 ## CI
 
-`ci.yml`: `test` and `schema-check` on every PR, both required by branch protection. On main, `build-and-push` signs the image by digest and `deploy` writes that digest to `graph-test/records.yaml` in `homelab-workspaces`. `promote.yml` opens the PR that moves it to `graph-prod`.
+`ci.yml`: `test` and `schema-check` on every PR, both required by branch protection. On main, `build-and-push` signs the image by digest and `deploy` writes that digest to `graph-test/records.yaml` in `homelab-workspaces`. `promote` then checks against prod and opens the PR that moves it to `graph-prod`.
 
 ## Required secrets (GitHub → repo settings → Secrets)
 
