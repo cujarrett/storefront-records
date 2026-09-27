@@ -96,6 +96,24 @@ jobs:
       - uses: actions/checkout@v7
       - uses: apollographql/rover-actions/install-rover-cli@v1
       - run: rover subgraph check storefront-homelab@prod --name records --schema schema.graphql
+      # What a reviewer judges: how the schema prod serves would change, and which commit it comes from.
+      - run: |
+          rover subgraph fetch storefront-homelab@prod --name records > prod.graphql || : > prod.graphql
+          {
+            echo "Moves \`graph-prod/records.yaml\` to the digest running in test. Merging this promotes it."
+            echo
+            echo "**Source** ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+            echo "**Checks** composes with every other prod subgraph and passes prod's recent operations."
+            echo
+            echo "### Schema change against prod"
+            if diff -q prod.graphql schema.graphql >/dev/null; then
+              echo "No schema change. Code only."
+            else
+              echo '```diff'
+              diff -u --label prod --label "this PR" prod.graphql schema.graphql || true
+              echo '```'
+            fi
+          } > "$RUNNER_TEMP/pr-body.md"
       - uses: actions/checkout@v7
         with:
           repository: cujarrett/homelab-workspaces
@@ -110,6 +128,8 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git commit -am "records: promote to prod"
           git push --force origin promote-records
-          gh pr view promote-records >/dev/null 2>&1 || gh pr create --head promote-records \
-            --title "records: promote to prod" \
-            --body "Passed the schema check against storefront-homelab@prod. Moves graph-prod/records.yaml to the digest now running in test."
+          if gh pr view promote-records >/dev/null 2>&1; then
+            gh pr edit promote-records --body-file "$RUNNER_TEMP/pr-body.md"
+          else
+            gh pr create --head promote-records --title "records: promote to prod" --body-file "$RUNNER_TEMP/pr-body.md"
+          fi
