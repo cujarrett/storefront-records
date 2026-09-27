@@ -1,0 +1,7 @@
+# rover dev: this subgraph from source, composed with whatever test has published.
+federation_version: 2
+subgraphs:
+  records:
+    routing_url: http://localhost:4001/graphql
+    schema:
+      file: ./schema.graphql
