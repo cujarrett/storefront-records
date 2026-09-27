@@ -10,4 +10,8 @@ describe('records resolvers', () => {
     const record = resolvers.Record.__resolveReference({ id: '1' })
     expect(record?.title).toBe('Kind of Blue')
   })
+
+  it('serves the year of first release', () => {
+    expect(resolvers.Query.records()[0].year).toBe(1959)
+  })
 })
