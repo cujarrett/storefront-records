@@ -32,7 +32,7 @@ jobs:
   build-and-push:
     needs: [test, schema-check]
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04-arm
     permissions:
       contents: read
       packages: write
@@ -41,7 +41,6 @@ jobs:
       digest: ${{ steps.build.outputs.digest }}
     steps:
       - uses: actions/checkout@v7
-      - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
       - uses: sigstore/cosign-installer@v4.1.2
       - uses: docker/login-action@v4
@@ -60,6 +59,8 @@ jobs:
           sbom: false
           push: true
           tags: ghcr.io/cujarrett/storefront-records:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       # Signed by digest, because a tag can be moved after signing. This job
       # runs only on main, so a signature means the commit was reviewed.
       - run: cosign sign --yes ghcr.io/cujarrett/storefront-records@${{ steps.build.outputs.digest }}
