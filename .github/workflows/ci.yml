@@ -83,6 +83,7 @@ jobs:
       # The whole image line is replaced, so a rename of the image survives.
       - run: |
           sed -i "s|^\(\s*\)image: .*|\1image: ghcr.io/cujarrett/storefront-records@${{ needs.build-and-push.outputs.digest }}|" graph-test/records.yaml
+          if git diff --quiet; then echo "test already runs this digest"; exit 0; fi
           git config user.name "homelab-workspaces-deployer[bot]"
           git config user.email "344521357+homelab-workspaces-deployer[bot]@users.noreply.github.com"
           git commit -am "records: deploy ${{ needs.build-and-push.outputs.digest }}"
