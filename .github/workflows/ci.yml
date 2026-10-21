@@ -70,15 +70,21 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+      - id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: Iv23liC9AQ1xrWzEe4nX
+          private-key: ${{ secrets.HOMELAB_WORKSPACES_APP_KEY }}
+          repositories: homelab-workspaces
       - uses: actions/checkout@v7
         with:
           repository: cujarrett/homelab-workspaces
-          token: ${{ secrets.HOMELAB_WORKSPACES_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
       # The whole image line is replaced, so a rename of the image survives.
       - run: |
           sed -i "s|^\(\s*\)image: .*|\1image: ghcr.io/cujarrett/storefront-records@${{ needs.build-and-push.outputs.digest }}|" graph-test/records.yaml
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
+          git config user.name "homelab-workspaces-deployer[bot]"
+          git config user.email "344521357+homelab-workspaces-deployer[bot]@users.noreply.github.com"
           git commit -am "records: deploy ${{ needs.build-and-push.outputs.digest }}"
           git push
 
@@ -91,7 +97,6 @@ jobs:
     env:
       APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
       APOLLO_ELV2_LICENSE: accept
-      GH_TOKEN: ${{ secrets.HOMELAB_WORKSPACES_PAT }}
       IMAGE: ghcr.io/cujarrett/storefront-records@${{ needs.build-and-push.outputs.digest }}
     steps:
       - uses: actions/checkout@v7
@@ -115,18 +120,26 @@ jobs:
               echo '```'
             fi
           } > "$RUNNER_TEMP/pr-body.md"
+      - id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: Iv23liC9AQ1xrWzEe4nX
+          private-key: ${{ secrets.HOMELAB_WORKSPACES_APP_KEY }}
+          repositories: homelab-workspaces
       - uses: actions/checkout@v7
         with:
           repository: cujarrett/homelab-workspaces
-          token: ${{ secrets.HOMELAB_WORKSPACES_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
           path: homelab-workspaces
       - working-directory: homelab-workspaces
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git checkout -B promote-records
           sed -i "s|^\(\s*\)image: .*|\1image: $IMAGE|" graph-prod/records.yaml
           if git diff --quiet; then echo "prod already runs $IMAGE"; exit 0; fi
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
+          git config user.name "homelab-workspaces-deployer[bot]"
+          git config user.email "344521357+homelab-workspaces-deployer[bot]@users.noreply.github.com"
           git commit -am "records: promote to prod"
           git push --force origin promote-records
           if gh pr view promote-records >/dev/null 2>&1; then
