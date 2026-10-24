@@ -9,6 +9,7 @@ One subgraph of the `storefront-homelab` federated graph, owned by one team. See
 - **Whenever a task requires a commit, always give a suggested commit message** - never leave the user to write it themselves.
 - **Give `git add` and the commit as two separate steps, listing every file explicitly.** Never `git add .` or `git add -A`.
 - **Never output a `git push` command.** The user pushes as a deliberate human step.
+- **Main is protected, so every change merges by PR.** Start the commands with `git checkout -b <branch>`. Never commit on main.
 - **No semicolons in JS/TS.** Enforced by Prettier (`semi: false`) and ESLint (`semi: ["error", "never"]`).
 - **The platform publishes the schema from the deployed image.** Nothing in this repo runs `rover subgraph publish`. The image ships `schema.graphql` at `/schema.graphql`. See [How the schema reaches the registry](https://github.com/cujarrett/homelab/blob/main/platform/docs/graph.md#2-how-the-schema-reaches-the-registry).
 
