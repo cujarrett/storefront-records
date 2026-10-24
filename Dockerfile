@@ -11,7 +11,8 @@ ENV NODE_ENV=production
 ENV SCHEMA_PATH=/schema.graphql
 ENV PORT=8080
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+# npm is only needed to install. Its bundled packages carry CVEs the app never runs.
+RUN npm ci --omit=dev && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 COPY --from=build /app/dist ./dist
 COPY schema.graphql /schema.graphql
 USER node
