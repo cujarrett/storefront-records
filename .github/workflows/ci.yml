@@ -143,7 +143,8 @@ jobs:
           git config user.email "344521357+homelab-workspaces-deployer[bot]@users.noreply.github.com"
           git commit -am "records: promote to prod"
           git push --force origin promote-records
-          if gh pr view promote-records >/dev/null 2>&1; then
+          # gh pr view also finds the merged PR from an earlier promote, so list open ones only.
+          if [ -n "$(gh pr list --head promote-records --state open --json number -q '.[].number')" ]; then
             gh pr edit promote-records --body-file "$RUNNER_TEMP/pr-body.md"
           else
             gh pr create --head promote-records --title "records: promote to prod" --body-file "$RUNNER_TEMP/pr-body.md"
