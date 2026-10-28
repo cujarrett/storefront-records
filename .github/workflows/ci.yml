@@ -64,6 +64,16 @@ jobs:
       # Signed by digest, because a tag can be moved after signing. This job
       # runs only on main, so a signature means the commit was reviewed.
       - run: cosign sign --yes ghcr.io/cujarrett/storefront-records@${{ steps.build.outputs.digest }}
+      # The SBOM sits beside the image as a signed attestation.
+      # A buildx SBOM would turn the image into an index, which Kyverno can't resolve.
+      # Pinned by commit. This job holds the token that signs images Kyverno trusts.
+      - uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: ghcr.io/cujarrett/storefront-records@${{ steps.build.outputs.digest }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+          upload-artifact: false
+      - run: cosign attest --yes --type spdxjson --predicate sbom.spdx.json ghcr.io/cujarrett/storefront-records@${{ steps.build.outputs.digest }}
 
   deploy:
     needs: build-and-push
