@@ -7,7 +7,8 @@ RUN npm run build
 # The runtime image has no npm, so dev dependencies are dropped here.
 RUN npm prune --omit=dev
 
-FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:cb606325b7ec4af55462cb0b424a53b452a5b4a894ffe841fcf1048d216fb9f8
+# Keep this Node major equal to the build stage. Renovate bumps only the build stage.
+FROM gcr.io/distroless/nodejs26-debian13:nonroot@sha256:96455baef11b178fc135b32206e3922c515dbed2400676c94f907f8f84e6abf6
 WORKDIR /app
 ENV NODE_ENV=production
 ENV SCHEMA_PATH=/schema.graphql
