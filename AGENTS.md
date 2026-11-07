@@ -36,5 +36,5 @@ Before telling the user to commit, always run `/security-review`. Once it confir
 
 ## Required secrets (GitHub → repo settings → Secrets)
 
-- `APOLLO_KEY`: a GraphOS key that can run schema checks.
-- `HOMELAB_WORKSPACES_PAT`: writes the digest to `homelab-workspaces`. Rotated by the homelab script, which finds every repo holding it.
+- `APOLLO_KEY`: a GraphOS key that can run schema checks. Rotate with `gh secret set APOLLO_KEY -R cujarrett/storefront-records`, which prompts for the value.
+- `HOMELAB_WORKSPACES_APP_KEY`: writes the digest to `homelab-workspaces`. Rotate with [GitHub Tokens → Rotating an App key](https://github.com/cujarrett/homelab/blob/main/docs/github-tokens.md#rotating-an-app-key), which finds every repo holding it.
