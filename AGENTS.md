@@ -10,7 +10,8 @@ One subgraph of the `storefront-homelab` federated graph, owned by one team. See
 - **Give `git add` and the commit as two separate steps, listing every file explicitly.** Never `git add .` or `git add -A`.
 - **Never output a `git push` command.** The user pushes as a deliberate human step.
 - **Main is protected, so every change merges by PR.** Start the commands with `git checkout -b <branch>`. Never commit on main.
-- **No semicolons in JS/TS.** Enforced by Prettier (`semi: false`) and ESLint (`semi: ["error", "never"]`).
+- **Go, stdlib first.** `net/http` and `slog`. gqlgen is the one exception. It generates the GraphQL layer from `schema.graphql`.
+- **Edit `schema.graphql`, then run `just generate`.** gqlgen rewrites `graph/` and adds a stub for any new field. `graph/resolver.go` and `graph/data.go` are the only hand-written files there.
 - **The platform publishes the schema from the deployed image.** Nothing in this repo runs `rover subgraph publish`. The image ships `schema.graphql` at `/schema.graphql`. See [How the schema reaches the registry](https://github.com/cujarrett/homelab/blob/main/platform/docs/graph.md#2-how-the-schema-reaches-the-registry).
 
 ### Pre-commit safety check
@@ -28,7 +29,7 @@ Before telling the user to commit, always run `/security-review`. Once it confir
 
 ## Build tool: `just`, not `make`
 
-`just --list` shows every recipe. `just ci` before pushing. `just check` runs the schema check against the test variant, the same one CI runs.
+`just --list` shows every recipe. `just ci` before pushing. `just check` runs the schema check against the test variant, the same one CI runs. gqlgen output is gitignored, and every recipe regenerates it first.
 
 ## CI
 

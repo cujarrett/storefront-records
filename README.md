@@ -14,8 +14,7 @@ Two files in `homelab-workspaces`, one per lane. CI writes the test digest, then
 ## Run it locally
 
 ```bash
-just install
-npm run dev &     # this subgraph on :4001
+just run &        # this subgraph on :4001
 just dev          # composes it with every other subgraph published to test
 ```
 
