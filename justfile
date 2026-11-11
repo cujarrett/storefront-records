@@ -1,17 +1,22 @@
-# lint -> test -> build, what CI runs before an image exists
+# generate -> lint -> test -> build, what CI runs before an image exists
 ci: lint test build
 
-lint:
-    npm run lint
+# graph/ from schema.graphql. Run after editing the schema.
+generate:
+    go tool gqlgen generate
 
-test:
-    npm run test
+lint: generate
+    go mod tidy -diff
+    golangci-lint run
 
-build:
-    npm run build
+test: generate
+    go test -race ./...
 
-install:
-    npm install
+build: generate
+    go build -race -o storefront-records .
+
+run: generate
+    go run .
 
 # this subgraph from source, every other schema pulled from the test variant
 dev:

@@ -1,21 +1,18 @@
-FROM node:26-slim@sha256:e4db4c914bf8ad241bd24804fc25d272d89bad97e68cdc8a1414862790a02c39 AS build
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb AS builder
+ARG TARGETOS
+ARG TARGETARCH
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN npm run build
-# The runtime image has no npm, so dev dependencies are dropped here.
-RUN npm prune --omit=dev
+RUN go tool gqlgen generate
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o storefront-records .
 
-# Keep this Node major equal to the build stage. Renovate bumps only the build stage.
-FROM gcr.io/distroless/nodejs26-debian13:nonroot@sha256:96455baef11b178fc135b32206e3922c515dbed2400676c94f907f8f84e6abf6
-WORKDIR /app
-ENV NODE_ENV=production
-ENV SCHEMA_PATH=/schema.graphql
-ENV PORT=8080
-COPY --from=build /app/package.json ./
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
+# Moves to ghcr.io/cujarrett/base-go once it publishes (homelab#416).
+FROM gcr.io/distroless/static-debian13:nonroot@sha256:25ac8f0c3b2334a9eb05452266bd4697864a8c8ef0ef71e5e6480d7f92868329
+COPY --from=builder /app/storefront-records /storefront-records
+# The platform reads the schema from this path in the image and publishes it.
 COPY schema.graphql /schema.graphql
+ENV PORT=8080
 EXPOSE 8080
-CMD ["dist/index.js"]
+ENTRYPOINT ["/storefront-records"]

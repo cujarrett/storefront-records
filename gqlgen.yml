@@ -1,0 +1,17 @@
+# Every build runs gqlgen, so the server always matches the schema the platform publishes.
+# Its output is gitignored. graph/resolver.go and graph/data.go are the only hand-written files.
+schema:
+  - schema.graphql
+exec:
+  filename: graph/generated.go
+  package: graph
+federation:
+  filename: graph/federation.go
+  package: graph
+  version: 2
+model:
+  filename: graph/model/models_gen.go
+  package: model
+resolver:
+  filename: graph/resolver.go
+  type: Resolver

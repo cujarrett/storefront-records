@@ -1,4 +1,7 @@
-node_modules/
-dist/
+# gqlgen output. Every build regenerates it from schema.graphql.
+graph/generated.go
+graph/federation.go
+graph/model/
+/storefront-records
 *.log
 .DS_Store
