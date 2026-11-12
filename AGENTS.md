@@ -33,9 +33,8 @@ Before telling the user to commit, always run `/security-review`. Once it confir
 
 ## CI
 
-`ci.yml`: `test` and `schema-check` on every PR, both required by branch protection. On main, `build-and-push` signs the image by digest and `deploy` writes that digest to `graph-test/records.yaml` in `homelab-workspaces`. `promote` then checks against prod and opens the PR that moves it to `graph-prod`.
+`ci.yml`: `test` and `schema-check` on every PR, both required by branch protection. On main, `build-and-push` pushes `ghcr.io/cujarrett/storefront-records:sha-<commit>` and signs it by digest. CI stops there. Kargo finds the new image, deploys it to `graph-test`, checks it against prod, and promotes it to `graph-prod` when someone clicks Promote. See the `kargo-storefront` project at `kargo.local.lab`.
 
 ## Required secrets (GitHub → repo settings → Secrets)
 
 - `APOLLO_KEY`: a GraphOS key that can run schema checks. Rotate with `gh secret set APOLLO_KEY -R cujarrett/storefront-records`, which prompts for the value.
-- `HOMELAB_WORKSPACES_APP_KEY`: writes the digest to `homelab-workspaces`. Rotate with [GitHub Tokens → Rotating an App key](https://github.com/cujarrett/homelab/blob/main/docs/github-tokens.md#rotating-an-app-key), which finds every repo holding it.
