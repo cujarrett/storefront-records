@@ -33,43 +33,33 @@ jobs:
   build-and-push:
     needs: [test, schema-check]
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-26.04-arm
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: cujarrett/homelab/.github/workflows/build-image.yml@main
+    with:
+      image: ghcr.io/cujarrett/storefront-records
+      tags: |
+        ghcr.io/cujarrett/storefront-records:sha-${{ github.sha }}
+      cache-scope: storefront-records
+
+  # Signed by digest, because a tag can be moved after signing.
+  # This job runs only on main, so a signature means the commit was reviewed.
+  sign:
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v7
-      - uses: docker/setup-buildx-action@v4
       - uses: sigstore/cosign-installer@v4.1.3
       - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - id: build
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          platforms: linux/arm64
-          # A plain manifest, not an index. Kyverno resolves an index by looking for
-          # an amd64 child, which a single-arch image never has, and fails there.
-          provenance: false
-          sbom: false
-          push: true
-          tags: ghcr.io/cujarrett/storefront-records:sha-${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      # Signed by digest, because a tag can be moved after signing. This job
-      # runs only on main, so a signature means the commit was reviewed.
-      - run: cosign sign --yes ghcr.io/cujarrett/storefront-records@${{ steps.build.outputs.digest }}
-      # The SBOM sits beside the image as a signed attestation.
-      # A buildx SBOM would turn the image into an index, which Kyverno can't resolve.
-      # Pinned by commit. This job holds the token that signs images Kyverno trusts.
-      - uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
-        with:
-          image: ghcr.io/cujarrett/storefront-records@${{ steps.build.outputs.digest }}
-          format: spdx-json
-          output-file: sbom.spdx.json
-          upload-artifact: false
-      - run: cosign attest --yes --type spdxjson --predicate sbom.spdx.json ghcr.io/cujarrett/storefront-records@${{ steps.build.outputs.digest }}
+      - run: cosign sign --yes ghcr.io/cujarrett/storefront-records@${{ needs.build-and-push.outputs.digest }}
