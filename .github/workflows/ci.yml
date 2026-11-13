@@ -44,22 +44,3 @@ jobs:
       tags: |
         ghcr.io/cujarrett/storefront-records:sha-${{ github.sha }}
       cache-scope: storefront-records
-
-  # Signed by digest, because a tag can be moved after signing.
-  # This job runs only on main, so a signature means the commit was reviewed.
-  sign:
-    needs: build-and-push
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    steps:
-      - uses: sigstore/cosign-installer@v4.1.3
-      - uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: cosign sign --yes ghcr.io/cujarrett/storefront-records@${{ needs.build-and-push.outputs.digest }}
