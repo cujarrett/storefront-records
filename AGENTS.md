@@ -33,7 +33,7 @@ Before telling the user to commit, always run `/security-review`. Once it confir
 
 ## CI
 
-`ci.yml`: `test` and `schema-check` on every PR, both required by branch protection. On main, `build-and-push` pushes `ghcr.io/cujarrett/storefront-records:sha-<commit>` and signs it by digest. CI stops there. Kargo finds the new image, deploys it to `graph-test`, checks it against prod, and promotes it to `graph-prod` when someone clicks Promote. See the `kargo-storefront` project at `kargo.local.lab`.
+`ci.yml`: `test` and `schema-check` on every PR, both required by branch protection. On main, `build-and-push` pushes `ghcr.io/cujarrett/storefront-records:sha-<commit>` with signed provenance from the homelab shared build workflow. CI stops there. Kargo finds the new image, deploys it to `graph-test`, checks it against prod, and promotes it to `graph-prod` when someone clicks Promote. See the `kargo-storefront` project at `kargo.local.lab`.
 
 ## Required secrets (GitHub → repo settings → Secrets)
 
