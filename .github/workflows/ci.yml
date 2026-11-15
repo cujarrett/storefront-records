@@ -30,9 +30,12 @@ jobs:
       - uses: apollographql/rover-actions/install-rover-cli@v1
       - run: rover subgraph check storefront-homelab@test --name records --schema schema.graphql
 
+  # Main: sha-<commit>, which Kargo promotes.
+  # PRs: pr-<number>-<head commit>, which only the PR environment runs. Kargo ignores the tag.
+  # pull_request, never pull_request_target, so a fork PR gets no token to push with.
   build-and-push:
     needs: [test, schema-check]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     permissions:
       contents: read
       packages: write
@@ -41,6 +44,8 @@ jobs:
     uses: cujarrett/homelab/.github/workflows/build-image.yml@main
     with:
       image: ghcr.io/cujarrett/storefront-records
-      tags: |
-        ghcr.io/cujarrett/storefront-records:sha-${{ github.sha }}
+      tags: >-
+        ${{ github.event_name == 'pull_request'
+          && format('ghcr.io/cujarrett/storefront-records:pr-{0}-{1}', github.event.number, github.event.pull_request.head.sha)
+          || format('ghcr.io/cujarrett/storefront-records:sha-{0}', github.sha) }}
       cache-scope: storefront-records
