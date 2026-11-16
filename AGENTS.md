@@ -33,7 +33,7 @@ Before telling the user to commit, always run `/security-review`. Once it confir
 
 ## CI
 
-`ci.yml`: `test` and `schema-check` on every PR, both required by branch protection. On main, `build-and-push` pushes `ghcr.io/cujarrett/storefront-records:sha-<commit>` with signed provenance from the homelab shared build workflow. On a PR, it pushes `pr-<number>-<head commit>` instead, and the homelab gives that PR its own environment, `graph-pr-records-<number>`. CI stops there. Kargo finds the new image, deploys it to `graph-test`, checks it against prod, and promotes it to `graph-prod` when someone clicks Promote. See the `kargo-storefront` project at `kargo.local.lab`.
+`ci.yml` calls the homelab's shared [subgraph workflow](https://github.com/cujarrett/homelab/blob/main/.github/workflows/subgraph.yml). It runs `test` and `schema-check` on every PR, both required by branch protection as `subgraph / test` and `subgraph / schema-check`. On main, it pushes `ghcr.io/cujarrett/storefront-records:sha-<commit>` with signed provenance. Kargo finds that image, deploys it to `graph-test`, checks it against prod, and promotes it to `graph-prod` when someone clicks Promote. See the `kargo-storefront` project at `kargo.local.lab`. On a PR, it pushes `pr-<number>-<head commit>` instead, and the homelab gives that PR its own environment, `graph-pr-records-<number>`.
 
 ## Required secrets (GitHub → repo settings → Secrets)
 

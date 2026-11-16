@@ -4,48 +4,18 @@ on:
   push:
     branches: [main]
   pull_request:
-  workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: go.mod
-      - run: go tool gqlgen generate
-      # gqlgen adds a panicking stub for any new field. A diff here means a resolver is missing.
-      - run: git diff --exit-code graph/resolver.go
-      - run: go vet ./...
-      - run: go test -race ./...
-
-  schema-check:
-    runs-on: ubuntu-latest
-    env:
-      APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
-      APOLLO_ELV2_LICENSE: accept
-    steps:
-      - uses: actions/checkout@v7
-      - uses: apollographql/rover-actions/install-rover-cli@v1
-      - run: rover subgraph check storefront-homelab@test --name records --schema schema.graphql
-
-  # Main: sha-<commit>, which Kargo promotes.
-  # PRs: pr-<number>-<head commit>, which only the PR environment runs. Kargo ignores the tag.
-  # pull_request, never pull_request_target, so a fork PR gets no token to push with.
-  build-and-push:
-    needs: [test, schema-check]
-    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+  # Tests, the schema check and the image build all live in the homelab.
+  # A PR builds a pr- image, and the homelab gives it its own environment.
+  subgraph:
     permissions:
       contents: read
       packages: write
       id-token: write
       attestations: write
-    uses: cujarrett/homelab/.github/workflows/build-image.yml@main
+    uses: cujarrett/homelab/.github/workflows/subgraph.yml@main
     with:
-      image: ghcr.io/cujarrett/storefront-records
-      tags: >-
-        ${{ github.event_name == 'pull_request'
-          && format('ghcr.io/cujarrett/storefront-records:pr-{0}-{1}', github.event.number, github.event.pull_request.head.sha)
-          || format('ghcr.io/cujarrett/storefront-records:sha-{0}', github.sha) }}
-      cache-scope: storefront-records
+      name: records
+    secrets:
+      APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
