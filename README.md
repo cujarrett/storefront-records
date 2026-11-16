@@ -1,5 +1,7 @@
 # storefront-records
 
+Demo :tada
+
 The `records` subgraph of `storefront-homelab`. Owns the `Record` type. One team, one repo, one schema file beside the resolvers that serve it.
 
 How it reaches the graph: [Platform Graph](https://github.com/cujarrett/homelab/blob/main/platform/docs/graph.md). The walkthrough is at [graph.mattjarrett.dev](https://graph.mattjarrett.dev).
