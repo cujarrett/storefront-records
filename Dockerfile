@@ -8,7 +8,7 @@ COPY . .
 RUN go tool gqlgen generate
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o storefront-records .
 
-FROM ghcr.io/cujarrett/base-distroless:static-debian13@sha256:723f8ed3b1060cf54014601bbb883e79f184bb949dcf85e19b209a69d6979ed9
+FROM ghcr.io/cujarrett/base-distroless:static-debian13@sha256:76a6ba0713608e3fcca0246b7c1989bbedfcff9809cab66fb6d9388bc091938c
 COPY --from=builder /app/storefront-records /storefront-records
 # The platform reads the schema from this path in the image and publishes it.
 COPY schema.graphql /schema.graphql
